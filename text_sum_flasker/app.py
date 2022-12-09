@@ -20,38 +20,24 @@ device = "cuda:0" if torch.cuda.is_available() else "cpu"
 
 def textsummy(text: str, max_length:int=1024, min_sum_len:int=80, 
                    max_sum_len:int=120, verbose:bool=True):
-    '''
-    Uses a text summarization model to create a summary of text
+    # Specify if the text passed is a string
+    assert isinstance(text, str), f'Please specify a string input into {text}'
+    # Put the model on a GPU for inference
+    model.to(device)
+    tokens_input = tokenizer.encode('summarize' + text, 
+            return_tensors='pt', max_length=max_length, 
+            truncation=True)
+    tokens_input = tokens_input.to(device)
+    ids = model.generate(tokens_input, min_length=min_sum_len, max_length=max_sum_len)
+    summary = tokenizer.decode(ids[0], skip_special_tokens=True)
+    if verbose:
+        print(f'Producing summary for text: {text}\nSummary is: {str(summary)}.')
 
-            Parameters:
-                    text (str): The text to be summarized
-                    max_length (int): Optional param (defaults=1024) for the max sequence length
-                    min_sum_len (int): Optional param (defaults=80) for the minimum text summary length
-                    max_sum_len (int): Optional param (defaults=120) for the maximum summary length 
-                    verbose (bool): indicating whether to print out the summary
+    # Compute metrics
+    r = Rouge()
+    rouge_scores = r.get_scores(summary, text)
+    return summary, rouge_scores
 
-            Returns:
-                    tuple of:
-                        summary (str) - the summary generated
-                        rouge_scores (dict) - a dictionary of rouge scores
-    '''
-    if isinstance(text, str):
-        model.to(device)
-        tokens_input = tokenizer.encode('summarize' + text, 
-                return_tensors='pt', max_length=max_length, 
-                truncation=True)
-        tokens_input = tokens_input.to(device)
-        ids = model.generate(tokens_input, min_length=min_sum_len, max_length=max_sum_len)
-        summary = tokenizer.decode(ids[0], skip_special_tokens=True)
-        if verbose:
-            print(f'Producing summary for text: {text}\nSummary is: {str(summary)}.')
-
-        # Compute metrics
-        r = Rouge()
-        rouge_scores = r.get_scores(summary, text)
-        return summary, rouge_scores
-    else:
-        raise ValueError('Expecting a string to be passed to the text line')
 
 
 # Create the flask component
