@@ -1,10 +1,8 @@
 """ 
 Name:       sum_flask.py
 Author:     Gary Hutson
-Date:       29/11/2022
+Date:       09/12/2022
 Usage:      python sum_flask.py
-            This will create a flask service - please configure URL for different ports
-
 """
 
 from flask import Flask, request, jsonify
@@ -20,7 +18,7 @@ tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
 model = AutoModelForSeq2SeqLM.from_pretrained(MODEL_NAME)
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
 
-def summarise_text(text: str, max_length:int=1024, min_sum_len:int=80, 
+def textsummy(text: str, max_length:int=1024, min_sum_len:int=80, 
                    max_sum_len:int=120, verbose:bool=True):
     '''
     Uses a text summarization model to create a summary of text
@@ -64,27 +62,6 @@ def page_index():
     return jsonify({'status': 'Summarisation model running, ready for inference...',
                     'date': f'{str(date.today())}'
                     })
-
-@app.route('/welcome', methods=['GET'])
-def welcome_page():
-    html = """
-    <!DOCTYPE html>
-    <html>
-    <title>Text Summariser Flask App Landing Page</title>
-    <meta name='viewport' content='width=device-width, initial-scale=1'>
-    <link rel='stylesheet' href='custom.css'>
-    <h1>Welcome to the Text Summariser - developed for CRISP</h1>
-    <p>To get started with the summariser you need to create a postman request to send a 
-    POST request to /summarise.</p>
-    <p>This expects the following inputs:</p>
-    <ol>
-        <li><strong>text</strong> - a JSON text field to summarise</li>
-        <li><strong>min_len</strong> - the minimum length of the summary</li>
-        <li><strong>max_len</strong> - the maximum length of the summary</li>
-    </ol>
-    """
-    return html
-
 # POST REQUEST
 @app.route('/summarise', methods=['POST'])
 def summariser():
@@ -93,14 +70,12 @@ def summariser():
     min_sum_length = json_request['min_len']
     max_sum_length = json_request['max_len']
     # Use function with JSON passed to get result
-    result = summarise_text(text=text, 
+    result = textsummy(text=text, 
                    min_sum_len=min_sum_length,
                    max_sum_len=max_sum_length)
     return str(result[0])
 
 if __name__== "__main__":
-    # Run in local host 0.0.0.0 on port whatever
-    # app.run(port=int(os.environ.get("PORT", 8081)), 
-    #         host="0.0.0.0", 
-    #         debug=True)
-    app.run(debug=True)
+    app.run(port=int(os.environ.get("PORT", 8081)),
+             debug=True)
+    #app.run(debug=True)
