@@ -1,8 +1,8 @@
 """ 
-Name:       sum_flask.py
+Name:       app.py
 Author:     Gary Hutson
 Date:       09/12/2022
-Usage:      python sum_flask.py
+Usage:      python app.py
 """
 
 from flask import Flask, request, jsonify
